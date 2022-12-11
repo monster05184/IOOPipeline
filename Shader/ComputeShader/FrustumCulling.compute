@@ -1,0 +1,62 @@
+#pragma kernel ClusterCulling
+
+
+struct Bounds {
+    float3 extent;
+    float3 position;
+};
+
+struct ClusterInfo
+{
+    Bounds bounds;
+    int objIndex;
+};
+
+
+
+RWStructuredBuffer<ClusterInfo> clusterBuffer;
+RWStructuredBuffer<int> resultBuffer;
+RWStructuredBuffer<int> instanceCountBuffer;
+RWStructuredBuffer<int> argsBuffer;
+float4 planes[6];//视锥体裁剪平面
+float3 camPosition;//摄像机的位置
+int clusterCount;//cluster数量
+
+uint BoxIntersect(float3 extent, float3 position)
+{
+
+    uint result = 1;
+    for(uint i = 0; i < 6; i++)
+    {
+        float4 plane = planes[i];
+        float3 absNormal = abs(plane.xyz);
+        result *= ((dot(position,plane.xyz) - dot(absNormal, extent)) < plane.w);
+    }
+    return result;
+}
+
+[numthreads(64,1,1)]
+void ClusterCulling (uint id : SV_DispatchThreadID)
+{
+    if(id < (uint)clusterCount)
+    {
+        Bounds bounds = clusterBuffer[id].bounds;
+        
+        
+        resultBuffer[id] = 0;
+        uint result = BoxIntersect(bounds.extent, bounds.position);
+        
+        if(result>0.5)
+        {
+            uint curIndex;
+            InterlockedAdd(argsBuffer[1], 1, curIndex);
+            resultBuffer[curIndex] = id;
+        }
+        
+    }
+    
+    
+}
+
+
+
