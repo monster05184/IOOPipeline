@@ -22,7 +22,7 @@ Shader "Scarecrow/MyPBR"
 		#include "UnityCG.cginc"
 		#include "Lighting.cginc"
 		#include "AutoLight.cginc"
-
+//----------------------BRDF--------------------------//
 		//计算环境光照或光照贴图uv坐标
 		inline half4 VertexGI(float2 uv1,float2 uv2,float3 worldPos,float3 worldNormal)
 		{
@@ -172,6 +172,8 @@ Shader "Scarecrow/MyPBR"
 			half t = pow(1 - cosA,5);
 			return lerp(c0,c1,t);
 		}
+	//--------------------------------BRDF------------------------------------//
+		
 
 	ENDCG
 	SubShader
@@ -324,7 +326,8 @@ Shader "Scarecrow/MyPBR"
 				//设置雾效,定义在UnityCG.cginc
 				UNITY_APPLY_FOG(i.fogCoord, color.rgb);
 
-				return half4(normalTangent, 1);
+				return float4(normalTangent, 0);
+				
 				return half4(color,1);
 			}
 

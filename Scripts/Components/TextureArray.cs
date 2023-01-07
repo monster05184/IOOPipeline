@@ -29,21 +29,21 @@ namespace IOOPipeline
             {
                 textureList = AssetDatabase.LoadAssetAtPath<TextureList>(path);
             }
-
             texture2DArray = new Texture2DArray(size, size, textureList.textures.Count, TextureFormat.RGBA32, true);
             
             for (int i = 0; i < textureList.textures.Count; i++)
             {
                 if (textureList.textures[i] != null)
                 {
+
                     texture2DArray.SetPixels(textureList.textures[i].GetPixels(),i);
                 }
-                
             }
-
+            
             texture2DArray.wrapMode = TextureWrapMode.Repeat;
             texture2DArray.filterMode = FilterMode.Bilinear;
             texture2DArray.Apply();
+            Debug.Log(texture2DArray.GetPixels(0)[1000] + "texture array");
         }
         
         public override void Dispose() {

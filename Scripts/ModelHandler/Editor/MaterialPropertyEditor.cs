@@ -157,6 +157,12 @@ namespace IOOPipeline {
                 textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
                 if (textureImporter != null)
                 {
+                    if (textureImporter.isReadable == false)
+                    {
+                        textureImporter.isReadable = true;
+                        AssetDatabase.ImportAsset(path);
+                    }
+
                     foreach (Attribute a in field.GetCustomAttributes())
                     {
                         Type type = a.GetType();
@@ -178,8 +184,6 @@ namespace IOOPipeline {
                         }
                     }
                 }
-
-                
             }
         }
 
@@ -205,22 +209,6 @@ namespace IOOPipeline {
         private void FixSize(TextureImporter textureImporter, string path, TextureSize.SIZE size)
         {
             int maxSize = 0;
-            switch (size)
-            {
-                case TextureSize.SIZE._512 :
-                    maxSize = 512;
-                    break;
-                case TextureSize.SIZE._1024:
-                    maxSize = 1024;
-                    break;
-                case TextureSize.SIZE._2048:
-                    maxSize = 2048;
-                    break;
-                case TextureSize.SIZE._4096:
-                    maxSize = 4096;
-                    break;
-
-            }
             maxSize = (int) size;
 
             if (!(textureImporter.maxTextureSize == maxSize))

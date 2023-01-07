@@ -8,10 +8,20 @@ namespace IOOPipeline {
     public class FrustumCulling {
 
        
-        private SceneEntity sceneEntity = SceneEntity.GetInstance();
-        private CullingEnity cullingEntity = new CullingEnity();
-        
-        
+        private SceneEntity m_sceneEntity ;
+        private CullingEntity cullingEntity = new CullingEntity();
+
+        private SceneEntity sceneEntity
+        {
+            get
+            {
+                if (m_sceneEntity == null)
+                {
+                    m_sceneEntity = SceneEntity.GetInstance();
+                }
+                return m_sceneEntity;
+            }
+        }
 
         public FrustumCulling()
         {
@@ -134,30 +144,7 @@ namespace IOOPipeline {
 
             return true;
         }
-
-        public void Test()
-        {
- 
-            foreach (var plane in cullingEntity.frustumCullingCom.planes)
-            {
-                Debug.Log(plane);
-                
-            }
-            int[] args = new int [5];
-            string argsStr = "";
-            sceneEntity.cullingBuffer.argsBuffer.GetData(args);
-            foreach (var arg in args)
-            {
-                argsStr += arg;
-            }
-            Debug.Log(args[1]);
-
-
-
-        }
-
-    
-
+        
     }
 }
 

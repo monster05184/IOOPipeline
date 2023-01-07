@@ -12,6 +12,7 @@ namespace IOOPipeline {
             GpuDrivenMaterial.SetVector("_MainLightDrection", new Vector3(1,1,0));
             sceneLoader.Initialize(GpuDrivenMaterial);
             sceneLoader.Load();
+           
             GpuDrivenMaterial.SetTexture("_TestTex",texture);
             
         }

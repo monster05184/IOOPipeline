@@ -29,7 +29,7 @@ Shader "GpuDrivenShader"
 		#include "Lighting.cginc"
 		#include "AutoLight.cginc"
             
-        
+         //-------------------------------------BRDF-------------------------------------------------//
         inline float D_GGX_Float(float NoH, float roughness)
         {
             float a = NoH * roughness;
@@ -79,10 +79,25 @@ Shader "GpuDrivenShader"
 			half t = pow(1 - cosA,5);
 			return lerp(c0,c1,t);
 		}
-                    
-            
+   
+        //-------------------------------------BRDF-------------------------------------------------//
+
+
+        //将法线从DXTnm解码
+        inline half3 DecodeDXTnm(float4 packednormal)
+        {
+		    half3 normal;
+		    normal.xy = packednormal.wy * 2 - 1;
+		    normal.z = sqrt(1 - saturate(dot(normal.xy, normal.xy)));
+		    return normal;
+        }
+        inline float2 DecodeNormalGamma(float2 gamma)
+        {
+	        return pow(gamma, 2.2);
+        }
+
         
-        //------------------------------------------------------------------------------------//
+        //-------------------------------------结构体-----------------------------------------------//
         struct Bounds
         {
             float3 extent;
@@ -110,8 +125,8 @@ Shader "GpuDrivenShader"
             float3 normal;
             float4 tangent;
         };
-         //------------------------------------------------------------------------------------//
-    
+         //--------------------------------------结构体----------------------------------------------//
+
     
         StructuredBuffer<Vertex> _VertexBuffer;//顶点的数据
         StructuredBuffer<Cluster> _ClusterBuffer;
@@ -181,8 +196,8 @@ Shader "GpuDrivenShader"
                 float4 pos = float4(vertex.pos,1);
                 float4 posWS = mul(object_info.local2WorldMatrix, pos);
                 float4 posCS = mul(unity_MatrixVP, posWS);
-                float3 normalWS = mul(object_info.local2WorldMatrix, vertex.normal);
-                float3 tangentWS = mul(object_info.local2WorldMatrix, vertex.tangent);
+                float3 normalWS = normalize(mul((float3x3)object_info.local2WorldMatrix, vertex.normal));
+                float3 tangentWS = normalize(mul((float3x3)object_info.local2WorldMatrix, vertex.tangent));
                 float3 binormalWS = cross(normalWS, tangentWS) * vertex.tangent.w;
         
                 //Output
@@ -193,6 +208,7 @@ Shader "GpuDrivenShader"
                 output.TtoW0 = float4(tangentWS.x, binormalWS.x, normalWS.x, posWS.x);
                 output.TtoW1 = float4(tangentWS.y, binormalWS.y, normalWS.y, posWS.y);
                 output.TtoW2 = float4(tangentWS.z, binormalWS.z, normalWS.z, posWS.z);
+
                 output.uv = TRANSFORM_TEX(vertex.uv, _AlbedoMap);
                 
         
@@ -215,12 +231,12 @@ Shader "GpuDrivenShader"
 				half metallic = metallicGloss.x * _MetallicStrength;//金属度
 				half roughness = 1 - metallicGloss.y * _GlossStrength;//粗糙度
 
+            	half4 normalTextureColor = UNITY_SAMPLE_TEX2DARRAY(normalTexture, half3(input.uv, input.objectIndex));
+            	half3 normalTS = UnpackNormal(normalTextureColor);
             	
-                half3 normalTS = UnpackNormal(UNITY_SAMPLE_TEX2DARRAY(normalTexture, half3(input.uv, input.objectIndex)));
-            	//normalTS = UnpackNormal(tex2D(_BumpMap, input.uv));
+            	
                 half3 normalWS = normalize(half3(dot(input.TtoW0.xyz,normalTS),
 								dot(input.TtoW1.xyz,normalTS),dot(input.TtoW2.xyz,normalTS)));
-                //half3 albedo = tex2D(_AlbedoMap, input.uv);
                 half3 albedo = UNITY_SAMPLE_TEX2DARRAY(abedoTexture, half3(input.uv, input.objectIndex));
                 
                 half3 lightDir = normalize(UnityWorldSpaceLightDir(posWS));//世界空间下的灯光方向,定义在UnityCG.cginc
@@ -253,13 +269,11 @@ Shader "GpuDrivenShader"
             	half3 directColor = UNITY_PI * (diffuseTerm + specularTerm) * _LightColor0.rgb * nl;
 				
             	half3 cube = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0,refDir,1);
-				
+
             	
-            	//Test
-            	half3 testColor = tex2D(_TestTex,input.uv);
-                //return half4(directColor, 1)
-                return half4(testColor, 1);
-            	return half4(specularTerm, 1);
+				//return float4(normalTS, 1);
+            	return float4(directColor, 1);
+            	return normalTS.b;
             }
             
             ENDHLSL

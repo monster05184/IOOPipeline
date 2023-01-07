@@ -19,7 +19,7 @@ Shader "HlslUnlitShader"
         HLSLINCLUDE
 
             // 引入Core.hlsl头文件，替换UnityCG中的cginc
-            #include "Packages/com.unity.render-Pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             // 将不占空间的材质相关变量放在CBUFFER中，为了兼容SRP Batcher
             CBUFFER_START(UnityPerMaterial)
