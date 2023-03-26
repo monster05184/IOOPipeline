@@ -70,7 +70,7 @@ namespace IOOPipeline {
         {
             if (loader.dataSended)
             {
-                loader.frustumCulling.UpdateData(camera);
+                loader.culling.UpdateData(context, camera);
             }
             
         }

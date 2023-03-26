@@ -22,19 +22,17 @@ namespace IOOPipeline {
         public override void OnInspectorGUI() {
             base.OnInspectorGUI();
 
-            if (GUILayout.Button("保存Mesh")) {
-                meshGenerator.GetMeshData();
-            }
-
             if (!hasMaterial)
             {
-                if (GUILayout.Button("创建材质"))
+                if (GUILayout.Button("保存Mesh并创建材质"))
                 {
+                    
                     data = ScriptableObject.CreateInstance<MaterialPropertyData>();
-                    if (StoreMaterialData(data))
+                    if (StoreMaterialData(data, meshGenerator))
                     {
                         hasMaterial = true;
                     }
+                    meshGenerator.GetMeshData();
                     
                 }
                 
@@ -44,7 +42,7 @@ namespace IOOPipeline {
 
             if (data != null)
             {
-                DrawMaterial(data, ref meshGenerator.showMaterial,ref materialEditor);
+                DrawMaterial(data, ref meshGenerator.showMaterial, ref materialEditor);
             }
             
         }
@@ -60,6 +58,7 @@ namespace IOOPipeline {
                         CreateCachedEditor (material, null, ref editor);
                         editor.OnInspectorGUI ();
                     }
+                    
                 }
                 
             }
@@ -72,7 +71,7 @@ namespace IOOPipeline {
             return materialPropertyData;
         }
 
-        private bool StoreMaterialData(MaterialPropertyData materialPropertyData)
+        private bool StoreMaterialData(MaterialPropertyData materialPropertyData, MeshGenerator meshGenerator)
         {
             string sceneDataPath = "Assets/Resourses/" + SceneInfoHandler.GetSceneName()+"SceneData.asset";
             SceneData sceneData = AssetDatabase.LoadAssetAtPath<SceneData>(sceneDataPath);
@@ -99,6 +98,7 @@ namespace IOOPipeline {
             if (materialPropertyData != null)
             {
                 materialPropertyData.renderObjectId = renderObjectId;
+                meshGenerator.objectIndex = renderObjectId;
                 AssetDatabase.CreateAsset(materialPropertyData, GetMaterialDataPath());
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();

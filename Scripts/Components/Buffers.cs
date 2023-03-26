@@ -11,6 +11,7 @@ namespace IOOPipeline
         public ComputeBuffer clusterBuffer;
         public ComputeBuffer resultBuffer;
         public ComputeBuffer argsBuffer;
+        public ComputeBuffer local2WorldMatrixBuffer;
         public CullingBuffer() {
             this.needToDispose = true;
         }
@@ -47,6 +48,10 @@ namespace IOOPipeline
                 argsBuffer = null;
             }
 
+            if (local2WorldMatrixBuffer != null) {
+                local2WorldMatrixBuffer.Release();
+                local2WorldMatrixBuffer = null;
+            }
 
         }
     }
@@ -56,6 +61,7 @@ namespace IOOPipeline
         public ComputeBuffer vertexBuffer;
         public GraphicsBuffer indexBuffer;
         public ComputeBuffer renderObjectBuffer;
+        public ComputeBuffer local2WorldMatrixBuffer;
         public SceneBuffer() {
             this.needToDispose = true;
         }

@@ -31,7 +31,7 @@ namespace IOOPipeline
                         Matrix4x4 local2WorldMatrix = Matrix4x4.TRS(pos, quaternion, scale);
 
                         renderObjects[i * 10 * 10 + j * 10 + k].materialProperty.mainColor = testColor;
-                        renderObjects[i * 10 * 10 + j * 10 + k].local2WordMatrix = local2WorldMatrix;
+                        renderObjects[i * 10 * 10 + j * 10 + k].local2WorldMatrix = local2WorldMatrix;
                         clusterInfos[i * 10 * 10 + j * 10 + k].objIndex = i * 10 * 10 + j * 10 + k;
                         clusterInfos[i * 10 * 10 + j * 10 + k].bounds.extent = new Vector3(0.5f, 0.5f, 0.5f);
                         clusterInfos[i * 10 * 10 + j * 10 + k].bounds.center = pos;

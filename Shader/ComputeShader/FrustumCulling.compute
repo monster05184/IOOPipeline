@@ -1,5 +1,7 @@
 #pragma kernel ClusterCulling
 
+#pragma kernel HizCulling
+
 
 struct Bounds {
     float3 extent;
@@ -13,18 +15,28 @@ struct ClusterInfo
 };
 
 
-
+RWStructuredBuffer<float4x4> localToWorldMatrixBuffer;
 RWStructuredBuffer<ClusterInfo> clusterBuffer;
 RWStructuredBuffer<int> resultBuffer;
 RWStructuredBuffer<int> instanceCountBuffer;
 RWStructuredBuffer<int> argsBuffer;
-float4 planes[6];//视锥体裁剪平面
-float3 camPosition;//摄像机的位置
 int clusterCount;//cluster数量
 
+//Hiz剔除需要使用的变量
+Texture2D hizTexture;//最远的距离的mipmap
+uint depthTextureSize;
+
+//摄像机数据：
+float4x4 world2ViewMatrix;//本地空间转换到摄像机空间的矩阵
+float3 cameraDir;//摄像机的朝向
+float4 planes[6];//视锥体裁剪平面
+float3 camPosition;//摄像机的位置
+float2 fov_aspect;//摄像机的fov和aspect X为fov, Y为aspect
+
+//判断包围盒是否在视锥体中
 uint BoxIntersect(float3 extent, float3 position)
 {
-
+    
     uint result = 1;
     for(uint i = 0; i < 6; i++)
     {
@@ -35,16 +47,23 @@ uint BoxIntersect(float3 extent, float3 position)
     return result;
 }
 
-[numthreads(64,1,1)]
+//进行Cluster的视锥体的剔除
+[numthreads(64, 1, 1)]
 void ClusterCulling (uint id : SV_DispatchThreadID)
 {
     if(id < (uint)clusterCount)
     {
-        Bounds bounds = clusterBuffer[id].bounds;
-        
+        int objectId = clusterBuffer[id].objIndex;
+        float4x4 local2WorldMatrix = localToWorldMatrixBuffer[objectId];
+        Bounds bound = clusterBuffer[id].bounds;
+        float3 extentWS = mul(local2WorldMatrix, bound.extent);
+        float3 positionWS = mul(local2WorldMatrix, bound.position);
+
+        extentWS = bound.extent;
+        positionWS = bound.position;
         
         resultBuffer[id] = 0;
-        uint result = BoxIntersect(bounds.extent, bounds.position);
+        uint result = BoxIntersect(extentWS, positionWS);
         
         if(result>0.5)
         {
@@ -52,11 +71,79 @@ void ClusterCulling (uint id : SV_DispatchThreadID)
             InterlockedAdd(argsBuffer[1], 1, curIndex);
             resultBuffer[curIndex] = id;
         }
-        
     }
+}
+//将深度转化为线性的距离眼睛的深度的值
+float LinearEyeDepth(float rawDepth)
+{
     
-    
+    return rawDepth;
 }
 
+//将Cluster与摄像机的距离与Mipmap中的距离进行相应的比较
+//传入值为Model Space 包围盒中心点，和扩展
+uint HizDepthComp(float3 extent, float3 position)
+{
+    
+    //将包围盒转换到摄像机空间下
+    float3 extentVS = abs(mul(extent, world2ViewMatrix));
+    float3 positionVS = mul(position, world2ViewMatrix);//TODO 矩阵的左乘和右乘
 
+    //计算包围盒的最近点与摄像机的位置
+    float3 absDir = abs(cameraDir);
+    float distance = dot(positionVS, cameraDir) - dot(absDir, extentVS);
+
+    //计算包围盒所占的屏幕UV的大小
+    float fov = fov_aspect.x;
+    float aspect = fov_aspect.y;
+    float height = 2 * tan(fov / 2) * abs(positionVS.z);
+    float width = aspect * height;
+    float uvOffInX = dot(extentVS, float3(1, 0, 0)) / width;
+    float uvOffInY = dot(extentVS, float3(0, 1, 0)) / height;
+    float maxUVOff = 2 * max(uvOffInX, uvOffInY);
+
+    //计算mipmap的等级
+    uint mipmapLevel = (uint)clamp(log2(2 * maxUVOff * depthTextureSize), 0, log2(depthTextureSize) - 4);
+    //计算采样需要的UV信息
+    float2 centerUV = position.xy/float2(width, height) + 0.5;
+    float2 leftBottomUV = centerUV - float2(uvOffInX, uvOffInY);
+    float2 rightTopUV = centerUV + float2(uvOffInX, uvOffInY);
+    //当前MipMap长宽对应的像素的数量
+    uint size = depthTextureSize / (1 << mipmapLevel);
+    //左下角和右下角点所在的像素,不使用clamp会导致相机左右边出现一条剔除不掉的草，因为有些草部分超框了
+    uint2 pixelLeftBottom = uint2(clamp(leftBottomUV.x * size, 0, size - 1), clamp(leftBottomUV.y * size, 0, size - 1));
+    uint2 pixelRightTop = uint2(clamp(rightTopUV.x * size, 0, size - 1), clamp(rightTopUV.y * size, 0, size - 1));
+    uint2 pixelLeftTop = uint2(pixelLeftBottom.x, pixelRightTop.y);
+    uint2 pixelRightBottom = uint2(pixelRightTop.x, pixelLeftBottom.y);
+    float4 depth = float4(
+        hizTexture.mips[mipmapLevel][pixelLeftBottom].r,
+        hizTexture.mips[mipmapLevel][pixelRightTop].r,
+        hizTexture.mips[mipmapLevel][pixelRightBottom].r,
+        hizTexture.mips[mipmapLevel][pixelLeftTop].r
+    );
+    #ifdef UNITY_REVERSED_Z
+        depth.xy = min(depth.xy, depth.zw);
+        depth.x = min(depth.x, depth.y);
+        
+    #else
+        depth.xy = max(depth.xy, depth.zw);
+        depth.x = max(depth.x, depth.y);
+    
+    #endif
+    
+} 
+
+//进行Hiz的剔除
+[numthreads(64, 1, 1)]
+void HizCulling(uint id : SV_DispatchThreadID)
+{
+    if(id < clusterCount)
+    {
+        Bounds bounds = clusterBuffer[id].bounds;
+
+        uint result = HizDepthComp(bounds.extent, bounds.position);
+        
+        
+    }
+}
 

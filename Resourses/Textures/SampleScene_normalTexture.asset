@@ -12,7 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a4c1836bb82a1043abface4d395ed8e, type: 3}
   m_Name: SampleScene_normalTexture
   m_EditorClassIdentifier: 
-  textures:
-  - {fileID: 2800000, guid: 5dd1ef3cb6ed01448a3a84d45af7c115, type: 3}
-  - {fileID: 2800000, guid: 5dd1ef3cb6ed01448a3a84d45af7c115, type: 3}
-  - {fileID: 2800000, guid: 5dd1ef3cb6ed01448a3a84d45af7c115, type: 3}
+  textures: []

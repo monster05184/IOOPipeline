@@ -21,4 +21,4 @@ MonoBehaviour:
     normalTexture: 0
     metallicMap: 0
     emissionMap: 0
-  renderObjectId: 1
+  renderObjectId: 0

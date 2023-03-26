@@ -8,29 +8,17 @@ namespace IOOPipeline {
     public class FrustumCulling {
 
        
-        private SceneEntity m_sceneEntity ;
-        private CullingEntity cullingEntity = new CullingEntity();
+        private SceneEntity sceneEntity ;
+        private CullingEntity cullingEntity;
 
-        private SceneEntity sceneEntity
+
+        
+
+        public FrustumCulling(CullingEntity cullingEntity, SceneEntity sceneEntity)
         {
-            get
-            {
-                if (m_sceneEntity == null)
-                {
-                    m_sceneEntity = SceneEntity.GetInstance();
-                }
-                return m_sceneEntity;
-            }
-        }
-
-        public FrustumCulling()
-        {
-
+            this.cullingEntity = cullingEntity;
+            this.sceneEntity = sceneEntity;
             cullingEntity.Initialize();
-            if (cullingEntity.cullingShader.shader == null) {
-                Debug.LogError("Culling Shader Can not Load");
-            }
-
         }
 
         //获取视锥体远平面的四个角
@@ -91,8 +79,8 @@ namespace IOOPipeline {
             cullingEntity.cullingShader.shader.SetBuffer(clusterCullingKernel,ShaderProperty.CullingShader.clusterBufferId, cullingBuffer.clusterBuffer);
             cullingEntity.cullingShader.shader.SetBuffer(clusterCullingKernel,ShaderProperty.CullingShader.resultBufferId, cullingBuffer.resultBuffer);
             cullingEntity.cullingShader.shader.SetBuffer(clusterCullingKernel,ShaderProperty.CullingShader.argsBufferId, cullingBuffer.argsBuffer);
+            cullingEntity.cullingShader.shader.SetBuffer(clusterCullingKernel,ShaderProperty.CullingShader.local2WorldMatrixBufferId, cullingBuffer.local2WorldMatrixBuffer);
             cullingEntity.cullingShader.shader.SetInt(ShaderProperty.CullingShader.clusterCountId, sceneInfo.clusterCount);
-            
             
             
             return true;
@@ -102,23 +90,24 @@ namespace IOOPipeline {
             
             
             cullingEntity.Initialize();
+            
+            InitializeData();
 
             cullingEntity.frustumCullingCom.cam = camera;
             
             //TODO remove test
-
             //Test
-            if(Application.isEditor)
-            cullingEntity.frustumCullingCom.cam = Camera.main;
+            if (Application.isEditor)
+            {
+                cullingEntity.frustumCullingCom.cam = Camera.main;
+            }
             //Test
             
             GetFrustumPlanes();
 
             ExcuteFrustumCulling();
-            
-            //Test
-            //Test();
-            //Test
+
+            LogResult();
             
             cullingEntity.Release();
             
@@ -127,7 +116,7 @@ namespace IOOPipeline {
             return true;
         }
         //每帧的GPU裁剪
-        public bool ExcuteFrustumCulling() {
+        private bool ExcuteFrustumCulling() {
 
             ref var cullingShader = ref cullingEntity.cullingShader.shader;
             ref var cullingCom = ref cullingEntity.frustumCullingCom;
@@ -144,7 +133,19 @@ namespace IOOPipeline {
 
             return true;
         }
-        
+
+        private void LogResult()
+        {
+            int[] result = new int[3];
+            ref var resultBuffer = ref sceneEntity.cullingBuffer.resultBuffer;
+            resultBuffer.GetData(result);
+            Debug.Log(result[0] + " " + result[1] + "" + result[2]);
+            int[] args = new int[5];
+            ref var argsBuffer = ref sceneEntity.cullingBuffer.argsBuffer;
+            argsBuffer.GetData(args);
+            Debug.Log(args[1]);
+        }
+
     }
 }
 

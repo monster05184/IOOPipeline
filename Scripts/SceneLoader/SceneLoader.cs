@@ -9,17 +9,24 @@ using UnityEditor.Experimental.GraphView;
 namespace IOOPipeline{
     public class SceneLoader {
         
-        
-       
-
         public Material GpuDrivenMaterial;//GpuDriven材质
-        public FrustumCulling frustumCulling;
+        /// <summary>
+        /// 当前帧数，从启动应用时开始计算
+        /// </summary>
         public int frameCount;
+        /// <summary>
+        /// 数据是否已经从CPU加载到GPU上面
+        /// </summary>
         public bool dataSended = false;
         
 
         public SceneEntity sceneEntity = SceneEntity.GetInstance();
         public TextureEntity textureEntity = new TextureEntity();
+
+        /// <summary>
+        /// 剔除功能实体
+        /// </summary>
+        public Culling culling = new Culling();
 
         public static SceneLoader Instance { get; private set; }
         public static SceneLoader GetInstance() {
@@ -34,13 +41,23 @@ namespace IOOPipeline{
         public void Initialize(Material GpuDrivenMaterial) {
             this.GpuDrivenMaterial = GpuDrivenMaterial;
             sceneEntity.Initialize();
-            frustumCulling = new FrustumCulling();
-            
+            culling.InitializeData();
         }
 
 
 
         public void Load() {
+            
+            LoadBuffer();
+            
+            LoadTexture();
+            
+            
+
+        }
+
+        private void LoadBuffer()
+        {
             ref var vertexBuffer = ref sceneEntity.sceneBuffer.vertexBuffer;
             
             ref var indexBuffer = ref sceneEntity.sceneBuffer.indexBuffer;
@@ -52,6 +69,8 @@ namespace IOOPipeline{
             ref var clusterBuffer = ref sceneEntity.cullingBuffer.clusterBuffer;
             
             ref var renderObjectBuffer = ref sceneEntity.sceneBuffer.renderObjectBuffer;
+
+            ref var local2WorldMatrixBuffer = ref sceneEntity.cullingBuffer.local2WorldMatrixBuffer;
 
             ref var sceneInfo = ref sceneEntity.sceneInfo;
             
@@ -79,6 +98,10 @@ namespace IOOPipeline{
                 renderObjectBuffer.SetData(renderObjectData.renderObjects);
                 GpuDrivenMaterial.SetBuffer("_RenderObjectBuffer", renderObjectBuffer);
                 sceneInfo.renderObjectCount = renderObjectData.renderObjectCount;
+                
+                //loacal2WorldMatrixBuffer 用于剔除
+                renderObjectBuffer = new ComputeBuffer(renderObjectData.renderObjectCount, sizeof(float) * 16, ComputeBufferType.Structured, ComputeBufferMode.Immutable);
+                renderObjectBuffer.SetData(renderObjectData.local2WorldMatrixs);
 
                 //clusterBufferLoader
                 ClusterData clusterData = AssetDatabase.LoadAssetAtPath<ClusterData>(PipelineComponent.ResoursePaths.ClusterDataPath);
@@ -109,11 +132,6 @@ namespace IOOPipeline{
                 GC.SuppressFinalize(clusterBuffer);
             if (renderObjectBuffer != null) 
                 GC.SuppressFinalize(renderObjectBuffer);
-            
-            LoadTexture();
-
-            frustumCulling.InitializeData();
-            
         }
 
         private void LoadTexture()

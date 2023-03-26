@@ -16,7 +16,7 @@ namespace IOOPipeline
             public static int planesId = Shader.PropertyToID("planes");
             public static int clusterCountId = Shader.PropertyToID("clusterCount");
             public static int camPosId = Shader.PropertyToID("camPosition");
-            public static int instanceCountBufferId = Shader.PropertyToID("instanceCountBuffer");
+            public static int local2WorldMatrixBufferId = Shader.PropertyToID("localToWorldMatrixBuffer");
         }
     
     }

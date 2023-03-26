@@ -9,6 +9,8 @@ namespace IOOPipeline {
         MeshFilter meshFilter;
         [HideInInspector]public Mesh mesh;
         [HideInInspector]public bool showMaterial;
+        
+        public int objectIndex = 0;
 
         public void Start() {
             meshFilter = GetComponent<MeshFilter>();
@@ -60,7 +62,7 @@ namespace IOOPipeline {
 
                 //д��RenderObjectData
                 RenderObjectData.ObjectInfo objectInfo = new RenderObjectData.ObjectInfo();
-                objectInfo.local2WordMatrix = transform.localToWorldMatrix;
+                objectInfo.local2WorldMatrix = transform.localToWorldMatrix;
                 objectInfo.materialProperty.mainColor = Color.blue;
                 if (!storedRenderObjectData) {
                     renderObjectData.AddRenderObject(objectInfo);
@@ -80,7 +82,7 @@ namespace IOOPipeline {
                 ClusterData.ClusterInfo cluster = new ClusterData.ClusterInfo();
                 cluster.bounds.extent = mesh.bounds.extents;
                 cluster.bounds.center = mesh.bounds.center;
-                cluster.objIndex = 0;
+                cluster.objIndex = objectIndex;
                 if (!storedClusterData) {
                     clusterData.AddCluster(cluster);
                 } else {

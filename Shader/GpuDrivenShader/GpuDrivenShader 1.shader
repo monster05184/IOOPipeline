@@ -188,6 +188,7 @@ Shader "GpuDrivenShader"
             {
                 //处理Cluster数据
                 uint cluster_id = _ResultBuffer[instanceID];
+        		cluster_id = instanceID;
                 uint renderObjectId = _ClusterBuffer[cluster_id].objIndex;
                 //获取渲染物的信息  
                 const ObjectInfo object_info= _RenderObjectBuffer[renderObjectId];

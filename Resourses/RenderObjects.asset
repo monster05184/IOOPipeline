@@ -15,7 +15,45 @@ MonoBehaviour:
   renderObjects:
   - materialProperty:
       mainColor: {r: 0, g: 0, b: 1, a: 1}
-    local2WordMatrix:
+    local2WorldMatrix:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 1
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+  - materialProperty:
+      mainColor: {r: 0, g: 0, b: 1, a: 1}
+    local2WorldMatrix:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: -1.65
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+  - materialProperty:
+      mainColor: {r: 0, g: 0, b: 1, a: 1}
+    local2WorldMatrix:
       e00: 1
       e01: 0
       e02: 0
@@ -32,61 +70,5 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 1
-  - materialProperty:
-      mainColor: {r: 0, g: 0, b: 1, a: 1}
-    local2WordMatrix:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 1.85
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-  - materialProperty:
-      mainColor: {r: 0, g: 0, b: 1, a: 1}
-    local2WordMatrix:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: -2.599
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-  - materialProperty:
-      mainColor: {r: 0, g: 0, b: 1, a: 1}
-    local2WordMatrix:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-  renderObjectCount: 4
+  local2WorldMatrixs: []
+  renderObjectCount: 3

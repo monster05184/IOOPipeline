@@ -12,7 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a4c1836bb82a1043abface4d395ed8e, type: 3}
   m_Name: SampleScene_metallicMap
   m_EditorClassIdentifier: 
-  textures:
-  - {fileID: 2800000, guid: ca20b8ccd25740a4e8dea62964bc4d6b, type: 3}
-  - {fileID: 2800000, guid: ca20b8ccd25740a4e8dea62964bc4d6b, type: 3}
-  - {fileID: 2800000, guid: ca20b8ccd25740a4e8dea62964bc4d6b, type: 3}
+  textures: []
